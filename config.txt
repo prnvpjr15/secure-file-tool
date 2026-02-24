@@ -1,1 +1,10 @@
-HMAC_KEY=secure_portfolio_key_2025
+# DEVELOPMENT ONLY - DO NOT USE IN PRODUCTION
+# This file stores the HMAC key in plaintext for convenience during development.
+# 
+# For secure key management, set the environment variable instead:
+#   export SECUREFILE_HMAC_KEY="your-secret-key"
+#
+# If this file exists and the env var is NOT set, it will be used as a fallback.
+# Remove this file and rely on environment variables for production deployments.
+
+HMAC_KEY=dev_hmac_key_2025
