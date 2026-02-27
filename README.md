@@ -1,4 +1,4 @@
-# SecureFile Tool 🔒
+# SecureFileTool 🔒
 
 A cross-platform desktop application for file encryption and integrity verification, built with **wxWidgets** and **Crypto++**.
 
