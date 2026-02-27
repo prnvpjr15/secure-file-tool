@@ -1,54 +1,49 @@
-SecureFile Tool 🔒
+# SecureFile Tool 🔒
 
-A robust, cross-platform Desktop GUI application for file encryption and integrity verification. Built using wxWidgets for the interface and Crypto++ for industry-standard cryptographic operations.
+A cross-platform desktop application for file encryption and integrity verification, built with **wxWidgets** and **Crypto++**.
 
-Features ✨
+---
 
-AES-256 Encryption: Securely encrypts any file type.
+## Features
 
-Random Salts: Generates a unique 16-byte random salt for every encryption to prevent Rainbow Table attacks.
+| Feature | Description |
+|---|---|
+| **AES-256 Encryption** | Encrypts any file type with industry-standard symmetric encryption |
+| **Random Salts** | Unique 16-byte salt per encryption — prevents rainbow table attacks |
+| **PBKDF2 Key Derivation** | 10,000 iterations of SHA-256 to derive keys and IVs from passwords |
+| **SHA-256 Hashing** | Generate and compare file fingerprints for integrity verification |
+| **Hash Comparator** | Paste an expected hash — green means match, red means mismatch |
+| **HMAC Signing** | Verify file authenticity using a shared secret key |
+| **Drag & Drop** | Drop any file onto the window to load it instantly |
+| **Cross-Platform** | Runs on Windows, Linux, and macOS |
 
-PBKDF2: Derives the key and IV from your password using 10,000 iterations of SHA-256.
+---
 
-SHA-256 Hashing: Generate unique file fingerprints.
+## Installation
 
-Hash Comparator: Paste an expected hash to instantly verify if a downloaded file is authentic (Green = Match, Red = Mismatch).
+### Prerequisites
 
-HMAC Signing: Verify file authenticity using a shared secret key.
+- C++ compiler: MSVC, GCC, or Clang
+- CMake v3.10+
+- wxWidgets v3.x
+- Crypto++ v8.x
 
-Drag & Drop: Simply drag files onto the window to load them.
+### Windows (vcpkg)
 
-Cross-Platform: Runs on Windows, Linux, and macOS.
-
-Installation 🛠️
-
-Prerequisites
-
-C++ Compiler (MSVC, GCC, or Clang)
-
-CMake (v3.10+)
-
-wxWidgets (v3.x)
-
-Crypto++ (v8.x)
-
-1. Windows (using vcpkg)
-
-The easiest way to build on Windows is using the vcpkg package manager.
-
+```powershell
 # Install dependencies
 .\vcpkg\vcpkg install wxwidgets:x64-windows
 .\vcpkg\vcpkg install cryptopp:x64-windows
 
 # Build
-mkdir build
-cd build
+mkdir build && cd build
 cmake .. -DCMAKE_TOOLCHAIN_FILE=C:/path/to/vcpkg/scripts/buildsystems/vcpkg.cmake
 cmake --build .
+```
 
+### Linux (Ubuntu/Debian)
 
-2. Linux (Ubuntu/Debian)
-
+```bash
 # Install dependencies
 sudo apt-get install build-essential cmake libwxgtk3.0-gtk3-dev libcrypto++-dev
 
@@ -56,107 +51,118 @@ sudo apt-get install build-essential cmake libwxgtk3.0-gtk3-dev libcrypto++-dev
 mkdir build && cd build
 cmake ..
 make
+```
 
+---
 
-Usage 🚀
+## Usage
 
-Launch the App: Run SecureFileTool (or SecureFileTool.exe).
+1. **Launch** — run `SecureFileTool` (or `SecureFileTool.exe` on Windows)
+2. **Load a file** — drag and drop, or click **Open File**
+3. **Choose an operation:**
+   - **AES** — enter a password to encrypt (plain files) or decrypt (`.enc` files)
+   - **SHA-256** — view the file hash; paste an expected hash to verify
+   - **HMAC** — calculate a signature using your HMAC key
 
-Load a File: Drag and drop a file or click "Open File".
+---
 
-Choose Operation:
+## Configuration
 
-AES: Enter a password. If the file is plain, it encrypts. If it's .enc, it decrypts.
+### HMAC Key
 
-SHA-256: View the hash. Paste an expected hash in the comparison box to verify.
-
-HMAC: Calculates signature based on the HMAC key (see Security section below).
-
-### Configuring the HMAC Key
-
-**Recommended (Secure):** Set the `SECUREFILE_HMAC_KEY` environment variable before launching the app:
+**Recommended:** Set the `SECUREFILE_HMAC_KEY` environment variable before launching.
 
 ```bash
-# Linux/macOS
-export SECUREFILE_HMAC_KEY="your-secret-key-here"
+# Linux / macOS
+export SECUREFILE_HMAC_KEY="your-secret-key"
 ./SecureFileTool
 
-# Windows (PowerShell)
-$env:SECUREFILE_HMAC_KEY = "your-secret-key-here"
+# Windows — PowerShell
+$env:SECUREFILE_HMAC_KEY = "your-secret-key"
 .\SecureFileTool.exe
 
-# Windows (Command Prompt)
-set SECUREFILE_HMAC_KEY=your-secret-key-here
+# Windows — Command Prompt
+set SECUREFILE_HMAC_KEY=your-secret-key
 SecureFileTool.exe
 ```
 
-**Fallback (Development Only):** If no environment variable is set, the app reads `config.txt` (see Security note below).
+**Fallback (development only):** If no environment variable is set, the app reads `config.txt`. See the [Security Notes](#security-notes) section before using this in any non-development context.
 
-### Audit Logging
+---
 
-Every encryption, decryption, hashing, and signature operation is logged to `audit_log.jsonl` in the application directory. Each log entry contains:
+## Audit Logging
 
-- **timestamp**: ISO 8601 timestamp of the operation
-- **operation**: Type of operation (AES_ENCRYPT, AES_DECRYPT, SHA256_HASH, HMAC_SIGN)
-- **file**: Name/path of the processed file
-- **file_hash**: SHA-256 hash of the input file
-- **success**: Boolean indicating if the operation succeeded
-- **details**: Additional context (error messages or HMAC result)
+Every operation is logged to `audit_log.jsonl` in the application directory.
 
-**Log Format (JSON Lines):**
+**Fields logged per entry:**
+
+| Field | Description |
+|---|---|
+| `timestamp` | ISO 8601 timestamp |
+| `operation` | `AES_ENCRYPT`, `AES_DECRYPT`, `SHA256_HASH`, or `HMAC_SIGN` |
+| `file` | Path/name of the processed file |
+| `file_hash` | SHA-256 hash of the input file |
+| `success` | Boolean — whether the operation succeeded |
+| `details` | Error message or HMAC result |
+
+**Example entries:**
+
 ```json
 {"timestamp":"2025-02-25T14:30:45.123Z","operation":"AES_ENCRYPT","file":"document.pdf","file_hash":"a1b2c3d4...","success":true,"details":""}
 {"timestamp":"2025-02-25T14:35:12.456Z","operation":"SHA256_HASH","file":"README.md","file_hash":"e5f6g7h8...","success":true,"details":""}
 ```
 
-This audit trail provides accountability and traceability for security-sensitive operations in production environments.
+---
 
+## Project Structure
 
+```
 SecureFileTool/
 ├── src/
 │   ├── main.cpp              # GUI and event handling
 │   ├── crypto_utils.h/.cpp   # AES, SHA-256, HMAC operations
 │   ├── file_io.h/.cpp        # File I/O and config loading
-│   ├── audit_log.h/.cpp      # Audit logging (JSON Lines format)
-├── config.txt                # Configuration file (HMAC Key) — DEVELOPMENT ONLY
+│   └── audit_log.h/.cpp      # Audit logging (JSON Lines format)
+├── config.txt                # HMAC key config — development only
 ├── audit_log.jsonl           # Audit trail (generated at runtime)
-├── CMakeLists.txt            # CMake Build System
-└── README.md                 # Documentation
-├── CMakeLists.txt         # CMake Build System
-└── README.md              # Documentation
+├── CMakeLists.txt            # CMake build system
+└── README.md
+```
+
+---
 
 ## Security Notes ⚠️
 
-### HMAC Key Storage (Known Limitation)
+### HMAC Key Storage
 
-**⚠️ Current Implementation:** The `config.txt` file stores the HMAC key in **plaintext**. This is a **security weakness** and is intended for **development/testing purposes only**.
+The `config.txt` fallback stores the HMAC key in **plaintext**. This is a known limitation intended for development only.
 
-**Why it's a problem:**
-- Any attacker with file access can read the key.
-- HMAC signatures become meaningless if the key is compromised.
-- Sensitive secrets should never be stored unencrypted on disk.
+- Any attacker with file access can read the key
+- A compromised key renders HMAC signatures meaningless
+- Secrets should never be stored unencrypted on disk
 
-**Production Recommendations:**
+**Production alternatives:**
 
-1. **Environment Variables (Current Fallback):** Set `SECUREFILE_HMAC_KEY` before launching (preferred).
-2. **OS Keychain:** On macOS, use Keychain; on Windows, use DPAPI or Windows Credential Manager; on Linux, use a secret manager like `pass`.
-3. **Configuration Management:** Use Vault, AWS Secrets Manager, or similar for enterprise deployments.
-4. **Remove config.txt:** In production, remove or ignore the `config.txt` file and rely exclusively on environment variables or secure vaults.
+- **Environment variable** — set `SECUREFILE_HMAC_KEY` at launch (preferred)
+- **OS keychain** — macOS Keychain, Windows DPAPI / Credential Manager, Linux `pass`
+- **Secrets management** — HashiCorp Vault, AWS Secrets Manager, or similar
+- **Remove `config.txt`** — in production, delete it and rely on environment variables or vaults
 
-### AES Encryption Notes
+### AES Encryption
 
-- Each encryption uses a **random 128-bit salt** to prevent rainbow table attacks.
-- Keys are derived using **PBKDF2 with 10,000 iterations** of SHA-256.
-- The **salt is prepended** to the ciphertext; no separate storage needed.
+- Each encryption uses a **random 128-bit salt** prepended to the ciphertext
+- Keys are derived with **PBKDF2 — 10,000 iterations of SHA-256**
+- No separate salt storage required
 
 ### Best Practices
 
-- **Passwords:** Use strong, unique passwords for AES encryption.
-- **File Integrity:** Always compare SHA-256 hashes over a trusted channel (never via the same untrusted link as the file).
-- **HMAC Secrets:** Treat HMAC keys like passwords—never commit them to version control.
-- **Docker/CI:** Use secrets management tools (GitHub Secrets, GitLab CI Variables, etc.) rather than embedding keys in code or config files.
+- Use strong, unique passwords for AES encryption
+- Always compare SHA-256 hashes over a **trusted, separate channel** — not the same link as the file
+- Never commit HMAC keys to version control
+- In CI/CD, use proper secrets management (GitHub Secrets, GitLab CI Variables, etc.)
 
+---
 
-License
+## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the **MIT License** — see the `LICENSE` file for details.
